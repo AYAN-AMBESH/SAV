@@ -7,4 +7,4 @@ For now it has two features
 # To Do
 - [ ] Quarantine the files
 
-# Quarantine of files idea was given by crypto and smolfrie
+<span style="font-size:3"> Quarantine of files idea was given by crypto and smolfrie</span>

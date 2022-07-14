@@ -55,6 +55,10 @@ class File_Scanner:
                 matches = rules.match(filePath, fast=True,)
                 print(matches)
 
+
+
+
+
     def __exit__(self):
         self.conn.close()
         print("[+]Exiting...............................")
@@ -63,9 +67,10 @@ if __name__ == "__main__":
     pathofdb = "../../scripts/hash.db"
     filetoscan = "../../test/test.txt"
     Directorytoscan = "../../test"
-    rule_file = "C:/Users/Ayan Ambesh/Documents/Github/Malw-Analysis/test.yar"
+    rule_file = "C:/Users/Ayan Ambesh/Documents/Github/Mal-ANALYSIS/SAV/test.yar"
 
     myScanner = File_Scanner(
         pathtodb=pathofdb, filetoscan=filetoscan, rule_file=rule_file)
     myScanner.scan_hash()
     myScanner.scan_yara(Directorytoscan=Directorytoscan)
+    File_Scanner.__exit__(myScanner)
