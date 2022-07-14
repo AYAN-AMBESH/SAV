@@ -6,3 +6,5 @@ For now it has two features
 
 # To Do
 - [ ] Quarantine the files
+
+# Quarantine of the idea was given by crypto and smolfrie
