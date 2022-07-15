@@ -1,4 +1,4 @@
-from ast import Not
+import base64
 import sqlite3
 import hashlib
 import yara
@@ -7,7 +7,7 @@ from os import walk, path
 
 class File_Scanner:
 
-    def __init__(self, pathtodb, filetoscan, rule_file):
+    def __init__(self,filetoscan,pathtodb="../../scripts/hash.db", rule_file="C:/Users/Ayan Ambesh/Documents/Github/Mal-ANALYSIS/SAV/test.yar"):
         self.pathtodb = pathtodb
         self.conn = sqlite3.connect(pathtodb)
         self.cur = self.conn.cursor()
@@ -37,8 +37,9 @@ class File_Scanner:
         res = [x for x in mallist if x == _hash]
         if res !=  []:    
             print("[+]-----------Malware-Found-------------[+]")
-            print(res)
+            print(f"HASH OF MALWARE FOUND:{res}")
             print("[+]-------------------------------------[+]")
+            return self.filetoscan
         else:
             print("[+]File free from malware")
         # for a in mallist:
@@ -52,25 +53,45 @@ class File_Scanner:
             for filename in files:
                 filePath = path.join(root, filename)
                 print("scanning ", filePath)
-                matches = rules.match(filePath, fast=True,)
+                matches = rules.match(filePath, fast=True)
                 print(matches)
-
-
-
-
-
+        if matches  != []:
+            return filename
+        else: return "NO MALACIOUS FILE FOUND"
+    
     def __exit__(self):
         self.conn.close()
         print("[+]Exiting...............................")
 
+
+
+class Quarantine(File_Scanner):
+    def __init__(self,dirtoscan,filetoscan):
+        super(Quarantine,self).__init__(filetoscan)
+        self.maldir = dirtoscan
+        self.filevir = super().scan_yara(self.maldir)
+    
+    def qurantine_file_via_b64(self):
+        with open(f'{self.maldir}/{self.filevir}', 'rb' ) as  vir:
+            virus=base64.b64encode(vir.read())
+        print(virus)
+        
+            
+
 if __name__ == "__main__":
     pathofdb = "../../scripts/hash.db"
     filetoscan = "../../test/test.txt"
-    Directorytoscan = "../../test"
+    Directorytoscan = "C:/Users/Ayan Ambesh/Documents/Github/Mal-ANALYSIS/SAV/test"
     rule_file = "C:/Users/Ayan Ambesh/Documents/Github/Mal-ANALYSIS/SAV/test.yar"
 
     myScanner = File_Scanner(
-        pathtodb=pathofdb, filetoscan=filetoscan, rule_file=rule_file)
+         filetoscan=filetoscan,pathtodb=pathofdb ,rule_file=rule_file)
     myScanner.scan_hash()
-    myScanner.scan_yara(Directorytoscan=Directorytoscan)
-    File_Scanner.__exit__(myScanner)
+    # mal_file = myScanner.scan_yara(Directorytoscan=Directorytoscan)
+    # print(mal_file)
+    # print(path.abspath(mal_file))
+    # # File_Scanner.__exit__(myScanner)
+    # directoryOfmal = path.dirname(mal_file)
+    # print(directoryOfmal)
+    quarant = Quarantine(Directorytoscan,filetoscan)
+    quarant.qurantine_file_via_b64()
