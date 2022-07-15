@@ -61,11 +61,11 @@ class Scanner:
             print("")
             choice = input('Do you want to delete malicious file?(Y/N) ')
             print(choice)
-            if choice == 'Y' or 'y':
-                # os.remove(self.filetoscan)                 wierd behaviour
-                print("file removed")  # only for testing
+            if choice == 'Y' or choice == 'y':
+                os.remove(self.filetoscan)
+                print("file removed")
             else:
-                print("file not removed")  # only for testing
+                print("file not removed")
             print("[+]-------------------------------------[+]")
         else:
             print("[+]File free from malware")
