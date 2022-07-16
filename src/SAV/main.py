@@ -33,7 +33,28 @@ class Scanner:
         finally:
             f.close()
 
+    def file_remove(self, malwaredictonary):
+        print('Do you want to delete malicious file(s)?(Y/N) ')
+        while True:
+            choice = input("Enter your choice : ")
+            if choice == 'Y' or choice == 'y':
+                for key in malwaredictonary:
+                    try:
+                        remove(key)
+                    except OSError as e:
+                        print("Error while removing : {}".format(key))
+                        print("Error : {}".format(e))
+                    else:
+                        print("file removed : {}".format(key))
+                break
+            elif choice == 'N' or choice == 'n':
+                print("file(s) not removed")
+                break
+            else:
+                print("invalid input!! type Y(yes) or N(no)")
+
     def scan_hash(self):
+
         global malwarehashes
         if not path.exists(self.filetoscan):
             print("invalid file path")
@@ -49,22 +70,17 @@ class Scanner:
         for i in malwarehashes:
             _id, _virushash = i
             malwarelist.append(_virushash)
-        res = []
+        res = {}
         # res = [x for x in malwarelist if x == filehash]
         for x in malwarelist:
             if x == filehash:
-                res.append(path.abspath(self.filetoscan))
+                res[path.abspath(self.filetoscan)] = x
 
         if res:
             print("[+]-----------Malware-Found-------------[+]")
             print(res)
             print("")
-            choice = input('Do you want to delete malicious file?(Y/N) ')
-            if choice == 'Y' or choice == 'y':
-                remove(self.filetoscan)
-                print("file removed")
-            else:
-                print("file not removed")
+            self.file_remove(res)
             print("[+]-------------------------------------[+]")
         else:
             print("[+]File free from malware")
@@ -78,12 +94,20 @@ class Scanner:
             self.__exit__()
         print("[+]-----Scanning---through----Yara-----------[+]")
         rules = yara.compile(filepath=self.rule_file)
+        malwaredic = {}
         for root, _, files in walk(self.directorytoscan, followlinks=False):
             for filename in files:
-                filepath = path.join(root, filename)
-                print("scanning ", filepath)
-                matches = rules.match(filepath, fast=True, )
-                print(matches)
+                self.filetoscan = path.join(root, filename)
+                print("scanning ", path.abspath(self.filetoscan))
+                matches = rules.match(self.filetoscan, fast=True, )
+                if matches:
+                    malwaredic[path.abspath(self.filetoscan)] = matches[0]
+            if malwaredic:
+                print("[+]-----------Malware-Found-------------[+]")
+                print(malwaredic)
+                self.file_remove(malwaredic)
+            else:
+                print("[+]File free from malware")
 
     def __exit__(self):
         self.conn.close()
@@ -108,7 +132,7 @@ if __name__ == "__main__":
     myScanner.filetoscan = "../../test/test.txt"
     myScanner.directorytoscan = "../../test"
     myScanner.scan_hash()
-    myScanner.scan_yara()
+    # myScanner.scan_yara()
     Scanner.__exit__(myScanner)
     # mal_file = myScanner.scan_yara(Directorytoscan=Directorytoscan)
     # print(mal_file)
