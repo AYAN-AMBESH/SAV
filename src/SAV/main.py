@@ -2,16 +2,16 @@ import base64
 import sqlite3
 import hashlib
 import yara
-from os import walk,remove,path
-import os
+from os import walk, path, remove
 import sys
 
 
 class Scanner:
     filetoscan = ""
     dbpath = "../../scripts/hash.db"
+    directorytoscan = ""
     rule_file = "../../test.yar"
-    directorytoscan= ""
+
     def __init__(self):
         try:
             self.conn = sqlite3.connect(self.dbpath)
@@ -56,7 +56,7 @@ class Scanner:
     def scan_hash(self):
 
         global malwarehashes
-        if not os.path.exists(self.filetoscan):
+        if not path.exists(self.filetoscan):
             print("invalid file path")
             self.__exit__()
         filehash = self.convtosha256()
@@ -85,15 +85,14 @@ class Scanner:
         else:
             print("[+]File free from malware")
 
-    def scan_yara(self,directtoscan):
-        if not os.path.exists(self.rule_file):
+    def scan_yara(self):
+        if not path.exists(self.rule_file):
             print("invalid rule file path")
             self.__exit__()
-        # if not path.exists(self.directorytoscan):
-        #     print("invalid directory path")
-        #     self.__exit__()
+        if not path.exists(self.directorytoscan):
+            print("invalid directory path")
+            self.__exit__()
         print("[+]-----Scanning---through----Yara-----------[+]")
-        print(directtoscan)
         rules = yara.compile(filepath=self.rule_file)
         malwaredic = {}
         for root, _, files in walk(self.directorytoscan, followlinks=False):
@@ -133,7 +132,7 @@ if __name__ == "__main__":
     myScanner.filetoscan = "../../test/test.txt"
     myScanner.directorytoscan = "../../test"
     myScanner.scan_hash()
-    # myScanner.scan_yara()
+    myScanner.scan_yara()
     Scanner.__exit__(myScanner)
     # mal_file = myScanner.scan_yara(Directorytoscan=Directorytoscan)
     # print(mal_file)
