@@ -1,4 +1,5 @@
 import base64
+from email.mime import base
 import sqlite3
 import hashlib
 import yara
@@ -6,8 +7,8 @@ from os import walk, path, remove
 import sys
 
 
-class Scanner:
-    db_path = "../../scripts/hash.db"
+class FScanner:
+    db_path = "../Database/hash.db"
 
     def __init__(self):
         try:
@@ -38,7 +39,7 @@ class Scanner:
             else:
                 print("file removed : {}".format(key))
 
-    def scan_hash(self, file_to_be_checked, hash_list=""):
+    def scan_hash(self, file_to_be_checked, hash_list="")->dict:
 
         global malware_hashes
         if not path.exists(file_to_be_checked):
@@ -70,7 +71,7 @@ class Scanner:
                     result[path.abspath(file_to_be_checked)] = x
             return result
 
-    def scan_yara(self, path_to_be_checked, rule_file="../../test.yar"):
+    def scan_yara(self, path_to_be_checked, rule_file="../test/test.yar")->dict:
         if not path.exists(rule_file):
             print("invalid rule file path")
             self.__exit__()
@@ -93,31 +94,27 @@ class Scanner:
         self.conn.close()
         sys.exit()
 
-# class Quarantine(Scanner):
-#     def __init__(self,dirtoscan,filetoscan):
-#         super(Quarantine,self).__init__(filetoscan)
-#         self.maldir = dirtoscan
-#         self.filevir = super().scan_yara(self.maldir)
-#
-#     def qurantine_file_via_b64(self):
-#         with open(f'{self.maldir}/{self.filevir}', 'rb' ) as  vir:
-#             virus=base64.b64encode(vir.read())
-#         print(virus)
+class Quarantine():
+    def __init__(self,result_file:dict={}):
+        self.file_path = []
+        for key in result_file:
+            self.file_path.append(key)
+
+    def qurantine_file_via_b64(self):
+        for q_path in self.file_path:
+            
+            tmp = path.basename(q_path)
+            file_name=path.splitext(tmp)[0]
+            
+            with open(q_path,'rb') as vir:
+                virus = base64.b64encode(vir.read())
+            
+            with open(f'../test/quarantine_{file_name}.txt','w') as virw:
+                virw.write(str(virus))
 
 
-# if __name__ == "__main__":
-# myScanner = Scanner()
-# myScanner.filetoscan = "../../test/test.txt"
-# myScanner.directorytoscan = "../../test"
-# res = myScanner.scan_hash("../../test/test.txt")
-# print(res)
-# myScanner.scan_yara()
-# Scanner.__exit__(myScanner)
-# mal_file = myScanner.scan_yara(Directorytoscan=Directorytoscan)
-# print(mal_file)
-# print(path.abspath(mal_file))
-# # File_Scanner.__exit__(myScanner)
-# directoryOfmal = path.dirname(mal_file)
-# print(directoryOfmal)
-# quarant = Quarantine(Directorytoscan,filetoscan)
-# quarant.qurantine_file_via_b64()
+if __name__ == "__main__":
+    file_path_to_scan = '../test/test.txt'
+    myscanner = FScanner()
+    result_file_virus = myscanner.scan_hash(file_path_to_scan)
+    Quarantine(result_file_virus).qurantine_file_via_b64()
