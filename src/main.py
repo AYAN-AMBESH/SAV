@@ -1,5 +1,4 @@
 import base64
-from email.mime import base
 import sqlite3
 import hashlib
 import yara
@@ -23,7 +22,7 @@ class FScanner:
                 temp = f.readline()
                 sha256hash = hashlib.sha256(temp).hexdigest()
         except IOError:
-            print("File not accessible")
+            print("Files not accessible")
         else:
             return sha256hash
         finally:
@@ -39,13 +38,18 @@ class FScanner:
             else:
                 print("file removed : {}".format(key))
 
-    def scan_hash(self, file_to_be_checked, hash_list="")->dict:
+    def scan_hash(self, path_to_be_checked, hash_list="")->dict:
 
         global malware_hashes
-        if not path.exists(file_to_be_checked):
-            print("invalid file path")
+        if not path.exists(path_to_be_checked):
+            print("invalid path")
             self.__exit__()
-        file_to_be_checked_hash = self.convert_to_sha256(file_to_be_checked)
+        
+        files_to_be_checked = {}
+        for root, _, files in walk(path_to_be_checked, followlinks=False):
+            for filename in files:
+                current_file = path.join(root, filename)
+                files_to_be_checked[path.abspath(current_file)] = self.convert_to_sha256(path.abspath(current_file))
 
         if not hash_list:
             try:
@@ -53,23 +57,25 @@ class FScanner:
                 malware_hashes = self.cur.fetchall()
             except sqlite3.Error as error:
                 print("Error : ", error)
+            
             malware_hashes_list = []
             for i in malware_hashes:
                 _id, _virushash = i
                 malware_hashes_list.append(_virushash)
+            
             result = {}
-            for x in malware_hashes_list:
-                if x == file_to_be_checked_hash:
-                    result[path.abspath(file_to_be_checked)] = x
+            for key in files_to_be_checked:
+                if files_to_be_checked[key] in malware_hashes_list:
+                    result[path.abspath(key)] = files_to_be_checked[key]
             return result
 
         elif hash_list:
             result = {}
             malware_hashes_list = list(open(hash_list, "r").read().split("\n"))
-            for x in malware_hashes_list:
-                if x == file_to_be_checked_hash:
-                    result[path.abspath(file_to_be_checked)] = x
-            return result
+            for key in files_to_be_checked:
+                if files_to_be_checked[key] in malware_hashes_list:
+                    result[path.abspath(key)] = files_to_be_checked[key]
+            return result            
 
     def scan_yara(self, path_to_be_checked, rule_file="../test/test.yar")->dict:
         if not path.exists(rule_file):
@@ -114,7 +120,8 @@ class Quarantine():
 
 
 if __name__ == "__main__":
-    file_path_to_scan = '../test/test.txt'
+    pathsc = '../test'
     myscanner = FScanner()
-    result_file_virus = myscanner.scan_hash(file_path_to_scan)
-    Quarantine(result_file_virus).qurantine_file_via_b64()
+    result_file_virus = myscanner.scan_hash(pathsc)
+    # Quarantine(result_file_virus).qurantine_file_via_b64()
+    print(result_file_virus)
