@@ -13,9 +13,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", type=int, choices=[1, 2],help="mode 1 = hash scan \n mode 2 = yara scan")
-    parser.add_argument("-d", "--directory", help="directory")
-    parser.add_argument("-y", "--yararules", help="yararules")
-    parser.add_argument("-h", "--hashlist", help="hashlist")
+    parser.add_argument("-d", "--directory", help="directory",metavar='')
+    parser.add_argument("-y", "--yararules", help="yararules",metavar='')
+    parser.add_argument("-hl", "--hashlist", help="hashlist",metavar='')
     args = parser.parse_args()
 
     if (args.directory is None) or (args.mode is None):
@@ -28,6 +28,8 @@ if __name__ == "__main__":
             mysav.hash_file = args.hashlist
         res = mysav.scan_hash(args.directory)
         if res:
+            for key in res:
+                print(f"Malware found: {key}")
             choice = input("Do you want to quarantine file(s)?(y/n)")
             if choice == "y" or choice == "Y":
                 mysav.qurantine_file_via_b64(res)
@@ -37,10 +39,13 @@ if __name__ == "__main__":
         if args.yararules:
             mysav.rule_fule = args.yararules
         res = mysav.scan_yara(args.directory)
-        choice = input("Do you want to quarantine file(s)?(y/n)")
-        if choice == "y" or choice == "Y":
-            mysav.qurantine_file_via_b64(res)
-        else:
-            pass
+        if res:
+            for key in res:
+                print(f"Malware found: {key}")
+            choice = input("Do you want to quarantine file(s)?(y/n)")
+            if choice == "y" or choice == "Y":
+                mysav.qurantine_file_via_b64(res)
+            else:
+                pass
 
 
