@@ -36,7 +36,7 @@ if __name__ == "__main__":
             else:
                 pass
         else:
-            print("No malicious found")
+            print("No malicious file found")
     elif args.mode == 2:
         if args.yararules:
             mysav.rule_fule = args.yararules
@@ -50,6 +50,6 @@ if __name__ == "__main__":
             else:
                 pass
         else:
-            print("No malicious found")
+            print("No malicious file found")
 
 
