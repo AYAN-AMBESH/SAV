@@ -14,6 +14,7 @@ class sav:
 
     def __init__(self):
         try:
+            print("Connecting to hash database")
             self.conn = sqlite3.connect(self.db_path)
             self.cur = self.conn.cursor()
         except sqlite3.Error as error:
@@ -39,7 +40,8 @@ class sav:
                 print("Error while removing : {}".format(key))
                 print("Error : {}".format(e))
             else:
-                print("file removed : {}".format(key))
+                print("removing {}".format(key))
+                print("file(s) removed")
 
     def scan_hash(self, path_to_be_checked)->dict:
 
@@ -88,7 +90,7 @@ class sav:
         if not path.exists(path_to_be_checked):
             print("invalid directory path")
             self.__exit__()
-
+        print("Compiling yara rules")
         rules = yara.compile(filepath=self.rule_file)
         result = {}
         for root, _, files in walk(path_to_be_checked, followlinks=False):
@@ -114,6 +116,7 @@ class sav:
             with open(f'{file_dir}/quarantine_{file_name}.txt','w') as virw:
                 virw.write(str(virus))
 
+        print("file(s) quarantined")
         self.file_remove(result_file)
     
     def __exit__(self):
