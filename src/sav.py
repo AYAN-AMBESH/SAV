@@ -2,7 +2,7 @@ import base64
 import sqlite3
 import hashlib
 import yara
-from os import walk, path, remove
+from os import walk, path, remove, urandom
 import sys
 
 
@@ -33,15 +33,23 @@ class sav:
             f.close()
 
     def file_remove(self, result_dic):
+        
         for key in result_dic:
-            try:
-                remove(key)
-            except OSError as e:
-                print("Error while removing : {}".format(key))
-                print("Error : {}".format(e))
-            else:
-                print("removing {}".format(key))
-                print("file(s) removed")
+            with open(key,"rb") as read_bin:
+                _len = len(read_bin.read())
+                print(_len)
+            read_bin.close()
+            with open(key,"wb") as write_bin:
+                for _ in range(5):
+                    write_bin.seek(0)
+                    write_bin.write(urandom(_len))
+                    write_bin.flush()
+                write_bin.close()
+            # with open(key,"rb") as read_bin:
+            #     _len = len(read_bin.read())
+            #     print(_len)
+            remove(key)
+
 
     def scan_hash(self, path_to_be_checked)->dict:
 
